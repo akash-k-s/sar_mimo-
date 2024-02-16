@@ -71,7 +71,7 @@ while ~feof(fidList)
     
     %generate parameter file for the test to run
     if PARAM_FILE_GEN_ON == 1     
-        parameter_file_gen_json(dataFolder_test, dataFolder_calib, module_param_file, pathGenParaFile, dataPlatform);
+        parameter_file_gen_json1(dataFolder_test, dataFolder_calib, module_param_file, pathGenParaFile, dataPlatform);
     end
     
     %load calibration parameters
@@ -117,6 +117,8 @@ while ~feof(fidList)
         rawData_rxchain(:,:,:,:,:,(i_file)) = adcData_1(:,:,:,:,:); %adding individual measurement to adc data
     end
 end
+clear adcData_1
+clear adcData
 size(rawData_rxchain);
 % reshape the rawData_Rxchain as Num_RX_channels x Num_TX x Samples_per_Chirp x Chirps_per_Frame x Num_Frames x Num_measurements
 rawData_rxchain = permute(rawData_rxchain,[3,4,1,2,5,6]);
@@ -126,18 +128,32 @@ chirp_per_frame = x(4);
 Num_horizontalScan = 1;
 Num_verticalScan = x(6);
 
-
-% Check the average chirps flag
+%% Check the average chirps flag
 if (chirp_per_frame > 1)
     averageChirps = true;
 else
     averageChirps = false;
 end
-
+%% average over all chirps in a frame
 if averageChirps
     rawData_rxchain = sum(rawData_rxchain,4)/chirp_per_frame; % Average Chirps( sums in chirp per frame dimension and divides) 
 end
-% rawData_rxchain = Num Tx* Num Rx, ADC samples, Num of frames ,
-% Num horizonal , Num vertical
+%% Reshape data
+% rawData_rxchain = Num Tx* Num Rx, ADC samples, Num of frames , Num horizonal , Num vertical
 rawData_rxchain = reshape(rawData_rxchain, x(1)*x(2),x(3),x(5),Num_horizontalScan,Num_verticalScan);
 
+Num_horizontalScan = x(5);
+rawData_rxchain = reshape(rawData_rxchain, x(1)*x(2),x(3),Num_horizontalScan,Num_verticalScan);
+% rawData_rxchain = Num Tx* Num Rx, ADC samples, Num horizonal , Num vertical
+
+%% For Continuous Scan - Crop the Data
+
+
+%if (sarParams.Trigger_timeOffset_s < 0) % If Trigger is ahead of the scan
+%    firstIndex = floor(abs(sarParams.Trigger_timeOffset_s) / (sensorParams.Frame_Repetition_Period_ms*1e-3)) + 1;
+%    motionTime_s = calculateMotionDuration(sarParams.Horizontal_scanSize_mm,sarParams.Platform_Speed_mmps,200);
+%    lastIndex = ceil(motionTime_s / (sensorParams.Frame_Repetition_Period_ms*1e-3)) + firstIndex;
+%else
+%    firstIndex = 1;
+%    lastIndex = Num_horizontalScan; % Get all the samples
+%    end

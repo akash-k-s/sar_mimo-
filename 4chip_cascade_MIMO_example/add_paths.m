@@ -37,7 +37,7 @@
 %
 % -----------------------------------------------------------------------
 
-homeDir = getenv('CASCADE_SIGNAL_PROCESSING_CHAIN_MIMO');
+homeDir = getenv('CASCADE_SIGNAL_PROCESSING_CHAIN_MIMO_1');
 addpath(genpath([homeDir,'/modules']));
 addpath(genpath([homeDir,'/main']));
 addpath([homeDir,'/utils/math']);
