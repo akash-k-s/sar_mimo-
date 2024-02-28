@@ -72,6 +72,7 @@ classdef calibrationCascade < Module
        dataPlatform = [];
        RxOrder = [];
        NumDevices = 4;
+       Periodicty =0;
        
     end
     
@@ -91,7 +92,8 @@ classdef calibrationCascade < Module
             obj.frameIdx = getParameter(obj, 'frameIdx');             
             obj.numSamplePerChirp = getParameter(obj, 'numSamplePerChirp');    
             obj.nchirp_loops = getParameter(obj, 'nchirp_loops');            
-            obj.numChirpsPerFrame = getParameter(obj, 'numChirpsPerFrame');             
+            obj.numChirpsPerFrame = getParameter(obj, 'numChirpsPerFrame'); 
+            
             obj.TxToEnable = getParameter(obj, 'TxToEnable');            
             obj.Slope_calib = getParameter(obj, 'Slope_calib');            
             obj.Sampling_Rate_sps = getParameter(obj, 'Sampling_Rate_sps');  

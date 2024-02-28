@@ -71,7 +71,7 @@ while ~feof(fidList)
     
     %generate parameter file for the test to run
     if PARAM_FILE_GEN_ON == 1     
-        parameter_file_gen_json(dataFolder_test, dataFolder_calib, module_param_file, pathGenParaFile, dataPlatform);
+        parameter_file_gen_json1(dataFolder_test, dataFolder_calib, module_param_file, pathGenParaFile, dataPlatform);
     end
     
     %load calibration parameters
@@ -117,6 +117,8 @@ while ~feof(fidList)
         rawData_rxchain(:,:,:,:,:,(i_file)) = adcData_1(:,:,:,:,:); %adding individual measurement to adc data
     end
 end
+clear adcData_1
+clear adcData
 size(rawData_rxchain);
 % reshape the rawData_Rxchain as Num_RX_channels x Num_TX x Samples_per_Chirp x Chirps_per_Frame x Num_Frames x Num_measurements
 rawData_rxchain = permute(rawData_rxchain,[3,4,1,2,5,6]);
@@ -126,18 +128,73 @@ chirp_per_frame = x(4);
 Num_horizontalScan = 1;
 Num_verticalScan = x(6);
 
-
-% Check the average chirps flag
+%% Check the average chirps flag
 if (chirp_per_frame > 1)
     averageChirps = true;
 else
     averageChirps = false;
 end
-
+%% average over all chirps in a frame
 if averageChirps
     rawData_rxchain = sum(rawData_rxchain,4)/chirp_per_frame; % Average Chirps( sums in chirp per frame dimension and divides) 
 end
-% rawData_rxchain = Num Tx* Num Rx, ADC samples, Num of frames ,
-% Num horizonal , Num vertical
+%% Reshape data
+% rawData_rxchain = Num Tx* Num Rx, ADC samples, Num of frames , Num horizonal , Num vertical
 rawData_rxchain = reshape(rawData_rxchain, x(1)*x(2),x(3),x(5),Num_horizontalScan,Num_verticalScan);
+
+Num_horizontalScan = x(5);
+rawData_rxchain = reshape(rawData_rxchain, x(1)*x(2),x(3),Num_horizontalScan,Num_verticalScan);
+% rawData_rxchain = Num Tx* Num Rx, ADC samples, Num horizonal , Num vertical
+
+%% For Continuous Scan - Crop the Data
+
+
+%if (sarParams.Trigger_timeOffset_s < 0) % If Trigger is ahead of the scan
+%    firstIndex = floor(abs(sarParams.Trigger_timeOffset_s) / (sensorParams.Frame_Repetition_Period_ms*1e-3)) + 1;
+%    motionTime_s = calculateMotionDuration(sarParams.Horizontal_scanSize_mm,sarParams.Platform_Speed_mmps,200);
+%    lastIndex = ceil(motionTime_s / (sensorParams.Frame_Repetition_Period_ms*1e-3)) + firstIndex;
+%else
+%    firstIndex = 1;
+%    lastIndex = Num_horizontalScan; % Get all the samples
+%    end
+
+ %% Crop the Data
+   % rawData = rawData(:,:,firstIndex:lastIndex,:);
+
+ %% Define new Num_horizontalScan, rearrange the data
+  %  [~,~,Num_horizontalScan,~] = size(rawData);
+  %  sarParams.Num_horizontalScan = Num_horizontalScan;
+
+
+ %% Rearrange the vertical scans
+% This should be done for Rectangular Scan Mode
+% rawData is (Num_RX * Num_TX) * Samples_per_Chirp * Num_horizontalScan * Num_verticalScan
+for n = 1:Num_verticalScan
+    if rem(n-1,2)
+        rawData_rxchain(:,:,:,n) = flip(rawData_rxchain(:,:,:,n),3);
+    end
+end
+
+
+%% Reshape the rawData
+% Convert rawData to: (Num_RX * Num_TX) * Num_verticalScan * Num_horizontalScan * Samples_per_Chirp;
+rawData_rxchain= permute(rawData_rxchain,[1,4,3,2]);
+
+%% Beat Frequency Offset Calibration
+%Slope_Hzpers = params.Slope_MHzperus*1e12;
+%Sampling_Rate_sps = params.Sampling_Rate_sps;
+%Samples_per_Chirp = calibrationObj.numSamplePerChirp;
+
+%f = ((0:Samples_per_Chirp-1)*Slope_Hzpers/Sampling_Rate_sps); % wideband frequency
+%f = reshape(f,1,1,1,[]);
+
+%frequencyBiasFactor = exp(-1i*2*pi*delayOffset.*f);
+
+%rawData_rxchain = rawData_rxchain .* frequencyBiasFactor;
+
+%% Convert multistatic data to monostatic version
+%--------------------------------------------------------------------------
+frequency = [sensorParams.Start_Freq_GHz*1e9,Params.Slope_MHzperus*1e12,Params.Sampling_Rate_ksps,sensorParams.Adc_Start_Time_us*1e-6];
+% rawData format should be: (Num_RX * Num_TX) * Num_verticalScan * Num_horizontalScan * Samples_per_Chirp;
+[~,rawDataMonostatic] = convertMultistaticToMonostatic(rawData_rxchain,frequency,xStepM_mm,yStepM_mm,zTarget_mm,'IWR1443',ones(1,Num_TX),ones(1,Num_RX));
 

@@ -157,3 +157,45 @@ rawData_rxchain = reshape(rawData_rxchain, x(1)*x(2),x(3),Num_horizontalScan,Num
 %    firstIndex = 1;
 %    lastIndex = Num_horizontalScan; % Get all the samples
 %    end
+
+ %% Crop the Data
+   % rawData = rawData(:,:,firstIndex:lastIndex,:);
+
+ %% Define new Num_horizontalScan, rearrange the data
+  %  [~,~,Num_horizontalScan,~] = size(rawData);
+  %  sarParams.Num_horizontalScan = Num_horizontalScan;
+
+
+ %% Rearrange the vertical scans
+% This should be done for Rectangular Scan Mode
+% rawData is (Num_RX * Num_TX) * Samples_per_Chirp * Num_horizontalScan * Num_verticalScan
+for n = 1:Num_verticalScan
+    if rem(n-1,2)
+        rawData_rxchain(:,:,:,n) = flip(rawData_rxchain(:,:,:,n),3);
+    end
+end
+
+
+%% Reshape the rawData
+% Convert rawData to: (Num_RX * Num_TX) * Num_verticalScan * Num_horizontalScan * Samples_per_Chirp;
+rawData_rxchain= permute(rawData_rxchain,[1,4,3,2]);
+
+%% Beat Frequency Offset Calibration
+%Slope_Hzpers = params.Slope_MHzperus*1e12;
+%Sampling_Rate_sps = params.Sampling_Rate_sps;
+%Samples_per_Chirp = calibrationObj.numSamplePerChirp;
+
+%f = ((0:Samples_per_Chirp-1)*Slope_Hzpers/Sampling_Rate_sps); % wideband frequency
+%f = reshape(f,1,1,1,[]);
+
+%frequencyBiasFactor = exp(-1i*2*pi*delayOffset.*f);
+
+%rawData_rxchain = rawData_rxchain .* frequencyBiasFactor;
+
+%% Convert multistatic data to monostatic version
+%--------------------------------------------------------------------------
+frequency = [sensorParams.Start_Freq_GHz*1e9,Params.Slope_MHzperus*1e12,Params.Sampling_Rate_sps,sensorParams.Adc_Start_Time_us*1e-6];
+
+% rawData format should be: (Num_RX * Num_TX) * Num_verticalScan * Num_horizontalScan * Samples_per_Chirp;
+[~,rawDataMonostatic] = convertMultistaticToMonostatic(rawData_rxchain,frequency,xStepM_mm,yStepM_mm,zTarget_mm,'IWR1443',ones(1,Num_TX),ones(1,Num_RX));
+

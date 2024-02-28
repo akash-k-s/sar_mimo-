@@ -113,7 +113,7 @@ else
     fprintf(fidParam, 'chirpRampEndTime = %d; %%s \n', params_chirp.DevConfig(1).Profile.RampEndTime*1e-6);
     fprintf(fidParam, 'framePeriodicty = %d; \n', params_chirp.DevConfig(1).FrameConfig.Periodicity * 1e-3);
     fprintf(fidParam, 'NumDevices = %d; \n', params_chirp.NumDevices);
-    fprintf(fidParam, 'framePeriodicty = %d; \n', params_chirp.DevConfig(1).FrameConfig.Periodicity * 1e-3);
+    %fprintf(fidParam, 'framePeriodicty = %d; \n', params_chirp.DevConfig(1).FrameConfig.Periodicity * 1e-3);
 
     fprintf(fidParam, 'frameCount = %e; %%s \n', params_chirp.DevConfig(1).FrameConfig.NumFrames); 
     fprintf(fidParam, 'numChirpsInLoop = %e; %%s \n', params_chirp.DevConfig(1).NumChirps);        
@@ -140,6 +140,7 @@ else
     fprintf(fidParam, '%%pass the slope used for calibration \n');
     fprintf(fidParam, 'Slope_calib = %d; \n\n', paramsCalib.Slope_MHzperus*1e12);
     fprintf(fidParam, 'fs_calib = %d; \n\n', paramsCalib.Sampling_Rate_sps);
+   
     
     %% combine with the rest of the signal
     fprintf(fidParam, '%%pass all other parameters \n');

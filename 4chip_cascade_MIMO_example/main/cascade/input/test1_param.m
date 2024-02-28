@@ -43,7 +43,6 @@ adcStartTimeConst = 6.000000e-06; %s
 chirpRampEndTime = 4.000000e-05; %s 
 framePeriodicty = 1.000000e-01; 
 NumDevices = 4; 
-framePeriodicty = 1.000000e-01; 
 frameCount = 1.000000e+01; %s 
 numChirpsInLoop = 1.200000e+01; %s 
 nchirp_loops = 64; 

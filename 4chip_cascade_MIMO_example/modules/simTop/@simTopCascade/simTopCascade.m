@@ -43,6 +43,8 @@ classdef simTopCascade < Module
         outputDataFileName       = [];        
         platform = [];
         totNumFrames = 0;
+        
+        
     end
     
     methods
@@ -59,7 +61,7 @@ classdef simTopCascade < Module
             obj.outputDataFileName = getParameter(obj, 'outputDataFileName');             
             obj.platform = getParameter(obj, 'platform');             
             obj.totNumFrames = getParameter(obj, 'totNumFrames');  
-          
+            
             
             % overwritten the property value inside parameter file
             %setProperties(obj, nargin, varargin{:});
