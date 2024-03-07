@@ -192,29 +192,6 @@ rawData_rxchain= permute(rawData_rxchain,[1,4,3,2]);
 
 %rawData_rxchain = rawData_rxchain .* frequencyBiasFactor;
 
-%% Define Parameters
-%--------------------------------------------------------------------------
-
-c = physconst('lightspeed');
-Samples_per_Chirp = sensorParams.Samples_per_Chirp;
-Num_TX = sensorParams.Num_TX;
-Num_RX = length(sensorParams.RxToEnable);
-Num_horizontalScan = sarParams.Num_horizontalScan;
-Num_verticalScan = sarParams.Num_verticalScan;
-yStepM_mm = sarParams.Vertical_stepSize_mm;
-if (Num_horizontalScan~=1)
-    if(sarParams.Horizontal_stepSize_mm == 0)
-        % for AMC4030 measurements
-        xStepM_mm = sarParams.Platform_Speed_mmps * sensorParams.Frame_Repetition_Period_ms*1e-3;
-        % for ESP32 based measurements
-        % xStepM_mm = (sarParams.Horizontal_scanSize_mm)/(Num_horizontalScan-1);
-    else
-        xStepM_mm = sarParams.Horizontal_stepSize_mm;
-    end
-else
-    xStepM_mm = 0;
-end
-lambda_mm = c/79e9*1e3; %  % center frequency
 %% Convert multistatic data to monostatic version
 %--------------------------------------------------------------------------
 frequency = [sensorParams.Start_Freq_GHz*1e9,Params.Slope_MHzperus*1e12,Params.Sampling_Rate_sps,sensorParams.Adc_Start_Time_us*1e-6];
@@ -223,7 +200,7 @@ frequency = [sensorParams.Start_Freq_GHz*1e9,Params.Slope_MHzperus*1e12,Params.S
 [~,rawDataMonostatic] = convertMultistaticToMonostatic(rawData_rxchain,frequency,xStepM_mm,yStepM_mm,zTarget_mm,'4ChipCascade',ones(1,Num_TX),ones(1,Num_RX));
 
 %% Make Uniform Virtual Array
-rawDataUniform = reshape(rawDataMonostatic([(0*16+1):(3*16),(6*16+1):(12*16)],:,:,:),[],Num_horizontalScan,Samples_per_Chirp);
+rawDataUniform = reshape(rawDataMonostatic([1*1:1*4,2:3*4],:,:,:),[],Num_horizontalScan,Samples_per_Chirp);
 
 %% Reconstruct 3D or 2D Image
 %--------------------------------------------------------------------------
