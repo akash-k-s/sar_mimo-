@@ -35,7 +35,7 @@ function [sarDataMonostatic_Ver1,sarDataMonostatic_Ver2] = convertMultistaticToM
 % yStepM: measurement step size at y (vertical) axis in mm
 % zTarget: target distance in mm
 
-% radarType: 'IWR1443', '4ChipCascade', 'Simulation'
+% radarType: 'IWR1443', '2ChipCascade', '4ChipCascade'
 % activeTx: active Tx antennas
 % activeRx: active Rx antennas
 

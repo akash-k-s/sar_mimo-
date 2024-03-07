@@ -16,7 +16,7 @@
 %% Modify all necessary directories and files
 %--------------------------------------------------------------------------
 % Path for the adcBinData
-experiment_folderName = '..\RecordedData_Example\20190523_smallPlatform_scissorsInBox_400By400';
+experiment_folderName = 'D:\iisc\20190523_smallPlatform_scissorsInBox_400By400';
 adcBinData_subFolderName = 'data1';
 
 % Path for the Calibration Data (and optional Background radiation)
@@ -97,12 +97,12 @@ lambda_mm = c/79e9*1e3; %  % center frequency
 % rawData format should be: (Num_RX * Num_TX) * Num_verticalScan * Num_horizontalScan * Samples_per_Chirp;
 rawDataUniform = reshape(rawDataMonostatic([1:4,9:12],:,:,:),[],Num_horizontalScan,Samples_per_Chirp);
 
-
+%% Reconstruct 3D or 2D Image
 %--------------------------------------------------------------------------
 %-- Image Reconstruction Part
 %--------------------------------------------------------------------------
 
-%% Reconstruct 3D or 2D Image
+
 % 2D Slice
 [sarImage2D,xRangeT2D,yRangeT2D,zRangeT2D] = reconstructSARimageFFT_3D(rawDataUniform,frequency,xStepM_mm,lambda_mm/4,-1,zTarget_mm,512);
 % sarImage2D = reconstructSARimageFFT(rawDataUniform,frequency,xStepM_mm,lambda_mm/4,-1,zTarget_mm,512);
@@ -110,21 +110,20 @@ rawDataUniform = reshape(rawDataMonostatic([1:4,9:12],:,:,:),[],Num_horizontalSc
 % 3D Image
 [sarImage3D,xRangeT,yRangeT,zRangeT] = reconstructSARimageFFT_3D(rawDataUniform,frequency,xStepM_mm,lambda_mm/4,-1,-1,512);
 % Filtering and visualizing
-sarImage3DAbs = abs(sarImage3D);
-volumeViewer(sarImage3DAbs);
+%sarImage3DAbs = abs(sarImage3D);
+%volumeViewer(sarImage3DAbs);
 % sarImage3DAbs = imgaussfilt3(sarImage3DAbs,0.5);
 % volshow(sarImage3DAbs,'Renderer','MaximumIntensityProjection','Isovalue',0.9,'BackgroundColor',[0 0 0]);
 
 %% Isosurface patch plot
-sarImage3DAbs_dB = mag2db(sarImage3DAbs/max(sarImage3DAbs(:)));
-dynamicRange_dB = -15;
-[X,Y,Z] = meshgrid(xRangeT,yRangeT,zRangeT);
-[faces,vertices,colors] = isosurface(X,Y,Z,sarImage3DAbs_dB,dynamicRange_dB,Z);
-figure('OuterPosition',[695 166 670 712]);
-sarImage3DAbs_dB_patch = patch('Vertices',vertices(:,[3,1,2]),'Faces',faces(:,[3,1,2]),'FaceVertexCData',colors,...
-    'FaceColor','interp','EdgeColor','interp');
-grid on
-xlabel('z-axis (mm)'); ylabel('x-axis (mm)'); zlabel('y-axis (mm)')
-xlim([0 400]); ylim([-200 200]); zlim([-200 200]);
-view(3)
-colormap gray
+%sarImage3DAbs_dB = mag2db(sarImage3DAbs/max(sarImage3DAbs(:)));
+%dynamicRange_dB = -15;
+%[X,Y,Z] = meshgrid(xRangeT,yRangeT,zRangeT);
+%[faces,vertices,colors] = isosurface(X,Y,Z,sarImage3DAbs_dB,dynamicRange_dB,Z);
+%figure('OuterPosition',[695 166 670 712]);
+%sarImage3DAbs_dB_patch = patch('Vertices',vertices(:,[3,1,2]),'Faces',faces(:,[3,1,2]),'FaceVertexCData',colors,'FaceColor','interp','EdgeColor','interp');
+%grid on
+%xlabel('z-axis (mm)'); ylabel('x-axis (mm)'); zlabel('y-axis (mm)')
+%xlim([0 400]); ylim([-200 200]); zlim([-200 200]);
+%view(3)
+%colormap gray

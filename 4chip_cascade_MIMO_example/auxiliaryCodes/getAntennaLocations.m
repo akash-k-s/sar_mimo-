@@ -14,7 +14,7 @@ function [rxAntPos,txAntPos,virtualChPos,distAntennas] = getAntennaLocations(rad
 % Radar Types:
 % 'IWR1443'
 % '2ChipCascade'
-% 'Simulation'
+% '4ChipCascade'
 
 % Note:
 % virtualChPos and distAntennas are arranged as (nRx*nTx)
@@ -66,7 +66,7 @@ switch radarType
         txAntPos = [lambda/2*ones(6,1), 7*lambda/4+yAxisTx, zeros(6,1)];
         % txAntPos = [zeros(6,1), 7*lambda/4+yAxisTx, zeros(6,1)];
         
-    case 'Simulation'
+    case '4ChipCascade'
         % inch2mm = 25.4;
         % lambda = inch2mm * 153.56e-3 * 1e-3;
         fC = 77e9; % center frequency

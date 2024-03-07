@@ -196,6 +196,6 @@ rawData_rxchain= permute(rawData_rxchain,[1,4,3,2]);
 %--------------------------------------------------------------------------
 frequency = [sensorParams.Start_Freq_GHz*1e9,Params.Slope_MHzperus*1e12,Params.Sampling_Rate_sps,sensorParams.Adc_Start_Time_us*1e-6];
 
-% rawData format should be: (Num_RX * Num_TX) * Num_verticalScan * Num_horizontalScan * Samples_per_Chirp;
-[~,rawDataMonostatic] = convertMultistaticToMonostatic(rawData_rxchain,frequency,xStepM_mm,yStepM_mm,zTarget_mm,'IWR1443',ones(1,Num_TX),ones(1,Num_RX));
+% rawData format: (Num_RX * Num_TX) * Num_verticalScan * Num_horizontalScan * Samples_per_Chirp;
+[~,rawDataMonostatic] = convertMultistaticToMonostatic(rawData_rxchain,frequency,xStepM_mm,yStepM_mm,zTarget_mm,'4ChipCascade',ones(1,Num_TX),ones(1,Num_RX));
 
