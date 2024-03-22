@@ -40,6 +40,8 @@
 homeDir = getenv('CASCADE_SIGNAL_PROCESSING_CHAIN_MIMO_1');
 addpath(genpath([homeDir,'/modules']));
 addpath(genpath([homeDir,'/main']));
+addpath(genpath([homeDir,'/auxiliaryCodes']));
+addpath(genpath([homeDir,'/imageReconstruction']));
 addpath([homeDir,'/utils/math']);
 addpath([homeDir,'/utils/dataParse']);
 addpath([homeDir,'/utils/disp']);

@@ -36,8 +36,7 @@
 % Top level main test chain to process the raw ADC data. The processing
 % chain including adc data calibration module, range FFT module, DopplerFFT
 % module, CFAR module, DOA module. Each module is first initialized before
-% actually used in the chain.
-close all
+% actually used in the chain.close all
 clear all
 clear vars
 PARAM_FILE_GEN_ON = 1;
@@ -78,6 +77,7 @@ while ~feof(fidList)
     load(dataFolder_calib)
     
     % simTopObj is used for top level parameter parsing and data loading and saving
+
     simTopObj           = simTopCascade('pfile', pathGenParaFile);
     calibrationObj      = calibrationCascade('pfile', pathGenParaFile, 'calibrationfilePath', dataFolder_calib);
     
@@ -86,12 +86,13 @@ while ~feof(fidList)
     numValidFrames      = simTopObj.totNumFrames;
     cnt = 1;
     frameCountGlobal = 0;
+    chirp_per_frame = 10;
 
    % Get Unique File Idxs in the "dataFolder_test" such as 0000, 0001, ...   
-   [fileIdx_unique] = getUniqueFileIdx(dataFolder_test);
+   [fileIdx_unique] = getUniqueFileIdx(dataFolder_test)
     
     for i_file = 1:(length(fileIdx_unique))
-        
+        count_1 = i_file
        % Get File Names for the Master, Slave1, Slave2, Slave3 and folder_name
        [fileNameStruct]= getBinFileNames_withIdx(dataFolder_test, fileIdx_unique{i_file});        
        
@@ -111,20 +112,23 @@ while ~feof(fidList)
             
             % RX Channel re-ordering
             adcData = adcData(:,:,calibrationObj.RxForMIMOProcess,:);
-            adcData_1 (:,:,:,:,(frameIdx-1)) = adcData(:,:,:,:); % adding frames to adc data
+            adcData = sum(adcData,2)/chirp_per_frame;
+            rawData_rxchain (:,:,:,:,(frameIdx-1),(i_file)) = adcData(:,:,:,:); % adding frames to adc data
         end
         % rawdata_rxchain = num of adc samples * num of chirps * num of Rx * num of Tx * num of frames * num of measurments  
-        rawData_rxchain(:,:,:,:,:,(i_file)) = adcData_1(:,:,:,:,:); %adding individual measurement to adc data
+        %rawData_rxchain(:,:,:,:,:,(i_file)) = adcData_1(:,:,:,:,:); %adding individual measurement to adc data
     end
 end
-clear adcData_1
+%clear adcData_1
 clear adcData
-size(rawData_rxchain);
+size(rawData_rxchain)
 % reshape the rawData_Rxchain as Num_RX_channels x Num_TX x Samples_per_Chirp x Chirps_per_Frame x Num_Frames x Num_measurements
 rawData_rxchain = permute(rawData_rxchain,[3,4,1,2,5,6]);
 x = size(rawData_rxchain);
 chirp_per_frame = x(4);
-
+samples_per_Chirp = x(3);
+Num_Tx = x(2);
+Num_Rx = x(1);
 Num_horizontalScan = 1;
 Num_verticalScan = x(6);
 
@@ -154,15 +158,16 @@ rawData_rxchain = reshape(rawData_rxchain, x(1)*x(2),x(3),Num_horizontalScan,Num
 %    motionTime_s = calculateMotionDuration(sarParams.Horizontal_scanSize_mm,sarParams.Platform_Speed_mmps,200);
 %    lastIndex = ceil(motionTime_s / (sensorParams.Frame_Repetition_Period_ms*1e-3)) + firstIndex;
 %else
-%    firstIndex = 1;
-%    lastIndex = Num_horizontalScan; % Get all the samples
+    firstIndex = 200;
+    lastIndex = 1600;
+    %lastIndex = Num_horizontalScan; % Get all the samples
 %    end
 
  %% Crop the Data
-   % rawData = rawData(:,:,firstIndex:lastIndex,:);
+    rawData_rxchain = rawData_rxchain(:,:,firstIndex:lastIndex,:);
 
  %% Define new Num_horizontalScan, rearrange the data
-  %  [~,~,Num_horizontalScan,~] = size(rawData);
+    [~,~,Num_horizontalScan,~] = size(rawData_rxchain);
   %  sarParams.Num_horizontalScan = Num_horizontalScan;
 
 
@@ -196,34 +201,38 @@ rawData_rxchain= permute(rawData_rxchain,[1,4,3,2]);
 %--------------------------------------------------------------------------
 
 c = physconst('lightspeed');
-Samples_per_Chirp = sensorParams.Samples_per_Chirp;
-Num_TX = sensorParams.Num_TX;
-Num_RX = length(sensorParams.RxToEnable);
-Num_horizontalScan = sarParams.Num_horizontalScan;
-Num_verticalScan = sarParams.Num_verticalScan;
-yStepM_mm = sarParams.Vertical_stepSize_mm;
+lambda_mm = c/79e9*1e3; %  % center frequency
+%Samples_per_Chirp = sensorParams.Samples_per_Chirp;
+%Num_TX = sensorParams.Num_TX;
+%Num_RX = length(sensorParams.RxToEnable);
+%Num_horizontalScan = sarParams.Num_horizontalScan;
+%Num_verticalScan = sarParams.Num_verticalScan;
+%yStepM_mm = sarParams.Vertical_stepSize_mm;
+yStepM_mm = 86*lambda_mm/4;
+horizontal_stepSize_mm =0; % to be added in struct later
+
 if (Num_horizontalScan~=1)
-    if(sarParams.Horizontal_stepSize_mm == 0)
-        % for AMC4030 measurements
-        xStepM_mm = sarParams.Platform_Speed_mmps * sensorParams.Frame_Repetition_Period_ms*1e-3;
-        % for ESP32 based measurements
-        % xStepM_mm = (sarParams.Horizontal_scanSize_mm)/(Num_horizontalScan-1);
+    %if(sarParams.Horizontal_stepSize_mm == 0)
+    %xStepM_mm = sarParams.Platform_Speed_mmps * sensorParams.Frame_Repetition_Period_ms*1e-3;
+    if(horizontal_stepSize_mm ==0)
+        xStepM_mm = 100/6*44*1e-3;
     else
         xStepM_mm = sarParams.Horizontal_stepSize_mm;
     end
 else
     xStepM_mm = 0;
 end
-lambda_mm = c/79e9*1e3; %  % center frequency
+
 %% Convert multistatic data to monostatic version
 %--------------------------------------------------------------------------
-frequency = [sensorParams.Start_Freq_GHz*1e9,Params.Slope_MHzperus*1e12,Params.Sampling_Rate_sps,sensorParams.Adc_Start_Time_us*1e-6];
-
+%frequency = [sensorParams.Start_Freq_GHz*1e9,Params.Slope_MHzperus*1e12,Params.Sampling_Rate_sps,sensorParams.Adc_Start_Time_us*1e-6];
+frequency =[77*1e9,66.6*1e12,params.Sampling_Rate_sps,6*1e-6]
 % rawData format: (Num_RX * Num_TX) * Num_verticalScan * Num_horizontalScan * Samples_per_Chirp;
-[~,rawDataMonostatic] = convertMultistaticToMonostatic(rawData_rxchain,frequency,xStepM_mm,yStepM_mm,zTarget_mm,'4ChipCascade',ones(1,Num_TX),ones(1,Num_RX));
+zTarget_mm = 250;
+[~,rawDataMonostatic] = convertMultistaticToMonostatic(rawData_rxchain,frequency,xStepM_mm,yStepM_mm,zTarget_mm,'4ChipCascade',ones(1,Num_Tx),ones(1,Num_Rx));
 
 %% Make Uniform Virtual Array
-rawDataUniform = reshape(rawDataMonostatic([(0*16+1):(3*16),(6*16+1):(12*16)],:,:,:),[],Num_horizontalScan,Samples_per_Chirp);
+rawDataUniform = reshape(rawDataMonostatic([(0*16+1):(3*16),(6*16+1):(12*16)],:,:,:),[],Num_horizontalScan,samples_per_Chirp);
 
 %% Reconstruct 3D or 2D Image
 %--------------------------------------------------------------------------
@@ -231,6 +240,7 @@ rawDataUniform = reshape(rawDataMonostatic([(0*16+1):(3*16),(6*16+1):(12*16)],:,
 %--------------------------------------------------------------------------
 
 % 2D Slice
+
 [sarImage2D,xRangeT2D,yRangeT2D,zRangeT2D] = reconstructSARimageFFT_3D(rawDataUniform,frequency,xStepM_mm,lambda_mm/4,-1,zTarget_mm,512);
 % sarImage2D = reconstructSARimageFFT(rawDataUniform,frequency,xStepM_mm,lambda_mm/4,-1,zTarget_mm,512);
 
