@@ -34,8 +34,8 @@
 ADVANCED_FRAME_CONFIG = 0; 
 dataPlatform = 'TDA2'; 
 %pass the chirp parameters associated with test data 
-numADCSample = 2.560000e+02; 
-adcSampleRate = 5.000000e+06; %Hz/s 
+numADCSample = 6.400000e+01; 
+adcSampleRate = 2.000000e+06; %Hz/s 
 startFreqConst = 7.700000e+10; %Hz 
 chirpSlope = 6.657800e+13; %Hz/s 
 chirpIdleTime = 1.200000e-05; %s 
@@ -45,11 +45,11 @@ framePeriodicty = 4.400000e-02;
 NumDevices = 4; 
 frameCount = 1.800000e+03; %s 
 numChirpsInLoop = 1.200000e+01; %s 
-nchirp_loops = 10; 
+nchirp_loops = 1; 
 numTxAnt = 12; 
 TxToEnable = [12  11  10   9   8   7   6   5   4   3   2   1];
 numRxToEnable = 16; 
-centerFreq = 7.870440e+01; 
+centerFreq = 7.806525e+01; 
 %pass the slope used for calibration 
 Slope_calib = 78986000000000; 
 
@@ -217,8 +217,8 @@ DopplerProcClutterRemove_dopplerFFTSize      = DopplerFFTSize;       % Doppler F
 DopplerProcClutterRemove_numChirpsPerVirAnt  = numChirpsPerVirAnt;
 DopplerProcClutterRemove_dopplerWindowEnable = 0;                    % flag to enable or disable windowing before Doppler FFT
 windowCoeff = hanning(numChirpsPerVirAnt);
-DopplerProcClutterRemove_dopplerWindowCoeff = windowCoeff(1:(numChirpsPerVirAnt/2));
-DopplerProcClutterRemove_scaleFactorDoppler  = scaleFactor(log2(DopplerFFTSize) - 3);
+%DopplerProcClutterRemove_dopplerWindowCoeff = windowCoeff(1:(numChirpsPerVirAnt/2));
+%DopplerProcClutterRemove_scaleFactorDoppler  = scaleFactor(log2(DopplerFFTSize) - 3);
 DopplerProcClutterRemove_FFTOutScaleOn       = 0; %1: apply scaleFactorRange; 0: scaling factor not applied
 DopplerProcClutterRemove_clutterRemove       = 0;                        %1=enable clutter removal; 0=no
 

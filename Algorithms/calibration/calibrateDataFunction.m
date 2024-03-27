@@ -30,7 +30,7 @@ Samples_per_Chirp = sensorParams.Samples_per_Chirp;
 
 f = ((0:Samples_per_Chirp-1)*Slope_Hzpers/Sampling_Rate_sps); % wideband frequency
 f = reshape(f,1,1,1,[]);
-
+%delayOffset = 4.32554002890647e-10;
 frequencyBiasFactor = exp(-1i*2*pi*delayOffset.*f);
 
 rawDataCal = rawDataCal .* frequencyBiasFactor;

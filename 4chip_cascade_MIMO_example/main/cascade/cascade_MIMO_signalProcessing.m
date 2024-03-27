@@ -86,7 +86,7 @@ while ~feof(fidList)
     numValidFrames      = simTopObj.totNumFrames;
     cnt = 1;
     frameCountGlobal = 0;
-    chirp_per_frame = 10;
+    chirp_per_frame = 1;
 
    % Get Unique File Idxs in the "dataFolder_test" such as 0000, 0001, ...   
    [fileIdx_unique] = getUniqueFileIdx(dataFolder_test)
@@ -105,6 +105,7 @@ while ~feof(fidList)
         %intentionally skip the first frame due to TDA2 
        
         for frameIdx = 2:1:numValidFrames;%numFrames_toRun
+        
             %read and calibrate raw ADC data            
             calibrationObj.frameIdx = frameIdx;
             frameCountGlobal = frameCountGlobal+1;
@@ -130,7 +131,12 @@ samples_per_Chirp = x(3);
 Num_Tx = x(2);
 Num_Rx = x(1);
 Num_horizontalScan = 1;
-Num_verticalScan = x(6);
+if length(x)==5
+    Num_verticalScan = 1;
+else
+    Num_verticalScan = x(6);
+end
+
 
 %% Check the average chirps flag
 if (chirp_per_frame > 1)
@@ -159,7 +165,7 @@ rawData_rxchain = reshape(rawData_rxchain, x(1)*x(2),x(3),Num_horizontalScan,Num
 %    lastIndex = ceil(motionTime_s / (sensorParams.Frame_Repetition_Period_ms*1e-3)) + firstIndex;
 %else
     firstIndex = 200;
-    lastIndex = 1600;
+    lastIndex = 1400;
     %lastIndex = Num_horizontalScan; % Get all the samples
 %    end
 
@@ -188,12 +194,16 @@ rawData_rxchain= permute(rawData_rxchain,[1,4,3,2]);
 %% Beat Frequency Offset Calibration
 %Slope_Hzpers = params.Slope_MHzperus*1e12;
 %Sampling_Rate_sps = params.Sampling_Rate_sps;
+Slope_Hzpers = 66.6*1e12;
+Sampling_Rate_sps = 2*1e6;
 %Samples_per_Chirp = calibrationObj.numSamplePerChirp;
 
-%f = ((0:Samples_per_Chirp-1)*Slope_Hzpers/Sampling_Rate_sps); % wideband frequency
-%f = reshape(f,1,1,1,[]);
-
-%frequencyBiasFactor = exp(-1i*2*pi*delayOffset.*f);
+f = ((0:samples_per_Chirp-1)*Slope_Hzpers/Sampling_Rate_sps); % wideband frequency
+f = reshape(f,1,1,1,[]);
+delayOffset = 4.32554002890647e-10;
+%delayOffset = 5.32554002890647e-10;
+%delayOffset = 8.32554002890647e-10;
+frequencyBiasFactor = exp(-1i*2*pi*delayOffset.*f);
 
 %rawData_rxchain = rawData_rxchain .* frequencyBiasFactor;
 
@@ -226,9 +236,9 @@ end
 %% Convert multistatic data to monostatic version
 %--------------------------------------------------------------------------
 %frequency = [sensorParams.Start_Freq_GHz*1e9,Params.Slope_MHzperus*1e12,Params.Sampling_Rate_sps,sensorParams.Adc_Start_Time_us*1e-6];
-frequency =[77*1e9,66.6*1e12,params.Sampling_Rate_sps,6*1e-6]
+frequency =[77*1e9,66.6*1e12,2*1e6,6*1e-6]
 % rawData format: (Num_RX * Num_TX) * Num_verticalScan * Num_horizontalScan * Samples_per_Chirp;
-zTarget_mm = 250;
+zTarget_mm = 280;
 [~,rawDataMonostatic] = convertMultistaticToMonostatic(rawData_rxchain,frequency,xStepM_mm,yStepM_mm,zTarget_mm,'4ChipCascade',ones(1,Num_Tx),ones(1,Num_Rx));
 
 %% Make Uniform Virtual Array
@@ -241,8 +251,13 @@ rawDataUniform = reshape(rawDataMonostatic([(0*16+1):(3*16),(6*16+1):(12*16)],:,
 
 % 2D Slice
 
-[sarImage2D,xRangeT2D,yRangeT2D,zRangeT2D] = reconstructSARimageFFT_3D(rawDataUniform,frequency,xStepM_mm,lambda_mm/4,-1,zTarget_mm,512);
+[sarImage2D,xRangeT2D,yRangeT2D,zRangeT2D] = reconstructSARimageFFT_3D(rawDataUniform,frequency,xStepM_mm,lambda_mm/4,-1,zTarget_mm,2048);
 % sarImage2D = reconstructSARimageFFT(rawDataUniform,frequency,xStepM_mm,lambda_mm/4,-1,zTarget_mm,512);
 
 % 3D Image
-[sarImage3D,xRangeT,yRangeT,zRangeT] = reconstructSARimageFFT_3D(rawDataUniform,frequency,xStepM_mm,lambda_mm/4,-1,-1,512);
+[sarImage3D,xRangeT,yRangeT,zRangeT] = reconstructSARimageFFT_3D(rawDataUniform,frequency,xStepM_mm,lambda_mm/4,-1,-1,1400);
+
+sarImage3DAbs = abs(sarImage3D);
+volumeViewer(sarImage3DAbs);
+sarImage3DAbs = imgaussfilt3(sarImage3DAbs,0.5);
+volshow(sarImage3DAbs,'Renderer','MaximumIntensityProjection','Isovalue',0.9,'BackgroundColor',[0 0 0]);
